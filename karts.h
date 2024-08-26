@@ -267,8 +267,8 @@ void write_report(){
     fprintf(fp, "Tempo de espera medio dos clientes que foram atendidos: %.2f minutos.\n", report_data.total_wait / (float) report_data.total_clients);
     fprintf(fp, "Tempo de espera total dos clientes que foram atendidos: %d minutos.\n",   report_data.total_wait);
     fprintf(fp, "Clientes que nao foram atendidos: %d.\n",   report_data.unanswered_clients);
-    fprintf(fp, "Tempo de espera total dos clientes que nao foram atendidos: %d minutos.\n",   report_data.total_wait_unanswared_clients);
     fprintf(fp, "Tempo de espera medio dos clientes que nao foram atendidos: %.2f minutos.\n",   report_data.total_wait_unanswared_clients / (float) report_data.unanswered_clients);
+    fprintf(fp, "Tempo de espera total dos clientes que nao foram atendidos: %d minutos.\n",   report_data.total_wait_unanswared_clients);
 
     fclose(fp);
 }
