@@ -22,11 +22,6 @@ typedef struct Person{
     unsigned int age;
 }Person;
 
-/*typedef struct Group{
-    Person* people;
-    unsigned int group_size;
-}Group;*/
-
 typedef struct Kartodromo{
     sem_t karts;
     sem_t helmets;
@@ -75,11 +70,6 @@ char surname_options[MAX_SURNAMES][MAX_NAME_LENGTH + 1] = {
     " Carvalho", 
     " Souza"
 };
-
-/*enum datas_especiais{
-    dia_das_criancas,
-
-};*/
 
 void sync_init(pthread_mutex_t* mutex, sem_t* karts, sem_t* helmets){
     pthread_mutex_init(mutex, NULL);
