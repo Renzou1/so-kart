@@ -34,6 +34,8 @@ typedef struct Report_data{
     unsigned int total_clients;
     unsigned int average_wait;
     unsigned int total_wait;
+    unsigned int unanswered_clients;
+    unsigned int total_wait_unanswared_clients;
 }Report_data;
 
 pthread_mutex_t mutex;
@@ -42,7 +44,9 @@ Kartodromo kartodromo;
 
 unsigned int minutes = 0;
 
-Report_data report_data = {.karts_used = 0, .helmets_used = 0};
+Report_data report_data = {.karts_used = 0, .helmets_used = 0, .total_clients = 0,
+                            .average_wait = 0, .total_wait = 0,.unanswered_clients = 0,
+                            .total_wait_unanswared_clients = 0};
 
 const bool CHILDRENS_DAY = true;
 char name_options[MAX_NAMES][MAX_NAME_LENGTH + 1] = {
@@ -206,24 +210,40 @@ void* act(void* person_arg){
 
     }
     unsigned int end_time = minutes;
+    pthread_mutex_lock(&mutex);            
     report_data.total_wait += end_time - start_time;
 
-    enter_track(person);
-    const int initial_time = minutes;
-    const int minimum_time = 15;
-    const int max_time = 60;
-    int desired_time = minimum_time + rand() % (max_time - minimum_time);
+    if(minutes == END_OF_DAY){
+        report_data.unanswered_clients++;
+        report_data.total_wait_unanswared_clients += end_time - start_time;
+        release_helmet();
+        release_kart();  
 
-    while(minutes < initial_time + desired_time && minutes != END_OF_DAY){
-        sleep(1);
+        person_leave(person);
+        pthread_mutex_unlock(&mutex);
+
+    }  else {
+        pthread_mutex_unlock(&mutex);
+
+        enter_track(person);
+        const int initial_time = minutes;
+        const int minimum_time = 15;
+        const int max_time = 60;
+        int desired_time = minimum_time + rand() % (max_time - minimum_time);
+
+        while(minutes < initial_time + desired_time && minutes != END_OF_DAY){
+            sleep(1);
+        }
+
+        leave_track(person);
+
+        release_helmet();
+        release_kart();
+
+        person_leave(person);        
     }
+    
 
-    leave_track(person);
-
-    release_helmet();
-    release_kart();
-
-    person_leave(person);
 }
 
 
@@ -244,8 +264,11 @@ void write_report(){
     fprintf(fp, "Numero de clientes: %d\n",               report_data.total_clients);
     fprintf(fp, "Total de capacetes usados: %d\n",        report_data.helmets_used);
     fprintf(fp, "Total de karts usados: %d\n",            report_data.karts_used);
-    fprintf(fp, "Tempo de espera medio: %.2f minutos.\n", report_data.total_wait / (float) report_data.total_clients);
-    fprintf(fp, "Tempo de espera total: %d minutos.\n",   report_data.total_wait);
+    fprintf(fp, "Tempo de espera medio dos clientes que foram atendidos: %.2f minutos.\n", report_data.total_wait / (float) report_data.total_clients);
+    fprintf(fp, "Tempo de espera total dos clientes que foram atendidos: %d minutos.\n",   report_data.total_wait);
+    fprintf(fp, "Clientes que nao foram atendidos: %d.\n",   report_data.unanswered_clients);
+    fprintf(fp, "Tempo de espera total dos clientes que nao foram atendidos: %d minutos.\n",   report_data.total_wait_unanswared_clients);
+    fprintf(fp, "Tempo de espera medio dos clientes que nao foram atendidos: %.2f minutos.\n",   report_data.total_wait_unanswared_clients / (float) report_data.unanswered_clients);
 
     fclose(fp);
 }
